@@ -1,4 +1,7 @@
-let opacity = 1;
+let startTime = NaN;
+const durationFly = 1000;
+const durationOpacity = 300;
+
 let left = 0;
 const overlay = document.createElement('div');
 
@@ -9,7 +12,7 @@ overlay.style.cssText = `
   right: 0;
   bottom: 0;
   background-color: black;
-  opacity: ${opacity};
+  opacity: 1;
   z-index: 999;
 `;
 
@@ -27,23 +30,27 @@ fly.style.cssText = `
 overlay.append(fly);
 document.body.append(overlay);
 
-const hideOverlay = () => {
-  opacity -= 0.03;
-  overlay.style.opacity = opacity;
-  if (opacity > 0) {
+const hideOverlay = (timestamp) => {
+  startTime ||= timestamp; // если startTime ложь то присваиваем timestamp
+  const progress = (timestamp - startTime) / durationOpacity;
+  overlay.style.opacity = 1 - progress;
+  if (progress < 1) {
     requestAnimationFrame(hideOverlay);
   } else {
     overlay.remove();
   }
 };
 
-const stepFly = () => {
+const stepFly = (timestamp) => {
+  startTime ||= timestamp; // если startTime ложь то присваиваем timestamp
+  const progress = (timestamp - startTime) / durationFly;
   // const maxLeft = document.documentElement.scrollWidth - fly.clientWidth;
-  left += 8;
+  left = document.documentElement.scrollWidth * progress;
   fly.style.transform = `translateX(${left}px)`;
-  if (left < document.documentElement.scrollWidth) {
+  if (progress < 1) {
     requestAnimationFrame(stepFly);
   } else {
+    startTime = NaN;
     requestAnimationFrame(hideOverlay);
   }
 };
